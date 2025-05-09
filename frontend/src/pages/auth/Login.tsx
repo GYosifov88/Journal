@@ -1,26 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { Box, TextField, Button, Typography, Alert } from '@mui/material';
+import { Box, TextField, Button, Typography, Alert, CircularProgress, Divider } from '@mui/material';
 import { Formik, Form, Field, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 
 // Import auth actions
-import { login, User } from '../../store/slices/authSlice';
+import { login, manualLogin } from '../../store/slices/authSlice';
+import { createTestUser } from '../../utils/authUtils';
 
 interface LoginFormValues {
   email: string;
   password: string;
 }
 
+// Define error interface for properly typing the payload
+interface ApiError {
+  message: string;
+  [key: string]: any;
+}
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const initialValues: LoginFormValues = {
-    email: '',
-    password: '',
+    email: 'test@example.com',
+    password: 'password123',
   };
 
   const validationSchema = Yup.object({
@@ -34,31 +43,55 @@ const Login: React.FC = () => {
   ) => {
     try {
       setError(null);
+      setSuccessMessage(null);
+      setIsProcessing(true);
       
-      // For development/demo purposes, we'll create a mock response instead of calling the API
-      const mockUser: User = { 
-        id: 1, 
-        username: 'testuser', 
-        email: values.email,
-        access_token: 'fake-jwt-token'
-      };
+      console.log('Attempting login with:', values.email);
       
-      // Dispatch the login action to update Redux state
-      dispatch({ 
-        type: 'auth/login/fulfilled', 
-        payload: mockUser 
-      });
+      // Dispatch the login action
+      const resultAction = await dispatch(login(values) as any);
       
-      // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      // Navigate to dashboard
-      navigate('/');
-      
+      // Check if the login was successful
+      if (login.fulfilled.match(resultAction)) {
+        console.log('Login successful:', resultAction.payload);
+        setSuccessMessage('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
+      } else if (login.rejected.match(resultAction)) {
+        // Handle login error
+        const payload = resultAction.payload as ApiError | undefined;
+        const errorMsg = payload?.message || resultAction.error.message || 'Login failed';
+        console.error('Login failed:', errorMsg);
+        setError(errorMsg);
+      }
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
+      setIsProcessing(false);
       setSubmitting(false);
+    }
+  };
+
+  // Test login function that bypasses the API
+  const handleTestLogin = () => {
+    try {
+      // Create a test user
+      const testUser = createTestUser();
+      
+      // Update Redux state directly
+      dispatch(manualLogin(testUser));
+      
+      setSuccessMessage("Test login successful! Using development bypass mode...");
+      
+      // Navigate to dashboard after a brief delay
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
+    } catch (err: any) {
+      console.error('Test login error:', err);
+      setError('Test login failed: ' + err.message);
     }
   };
 
@@ -68,7 +101,12 @@ const Login: React.FC = () => {
         Login
       </Typography>
       
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Use the pre-filled test credentials or click "Test Login" for quick access
+      </Alert>
+      
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
       
       <Formik
         initialValues={initialValues}
@@ -103,10 +141,10 @@ const Login: React.FC = () => {
               variant="contained"
               color="primary"
               fullWidth
-              disabled={isSubmitting}
+              disabled={isSubmitting || isProcessing}
               sx={{ mt: 2 }}
             >
-              Login
+              {isProcessing ? <CircularProgress size={24} color="inherit" /> : 'Login'}
             </Button>
             
             <Box mt={2} textAlign="center">
@@ -114,7 +152,27 @@ const Login: React.FC = () => {
                 Don't have an account?{' '}
                 <Link to="/register">Register</Link>
               </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Having trouble? <Link to="/auth-debug">Debug Auth</Link>
+              </Typography>
             </Box>
+            
+            <Divider sx={{ my: 2 }} />
+            
+            <Typography variant="caption" color="text.secondary" align="center" display="block">
+              Development Tools
+            </Typography>
+            
+            <Button
+              variant="outlined"
+              color="secondary"
+              fullWidth
+              onClick={handleTestLogin}
+              sx={{ mt: 1 }}
+              size="small"
+            >
+              Test Login (Redux)
+            </Button>
           </Form>
         )}
       </Formik>

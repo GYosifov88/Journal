@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
   Box,
@@ -26,14 +26,15 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 
-// Import logout action (we'll create this later)
-// import { logout } from '../../store/slices/authSlice';
+// Import logout action
+import { logout } from '../../store/slices/authSlice';
 
 const drawerWidth = 240;
 
 const MainLayout = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
 
@@ -51,8 +52,7 @@ const MainLayout = () => {
   };
 
   const handleLogout = () => {
-    // Placeholder for logout - we'll implement this later
-    // dispatch(logout());
+    dispatch(logout());
     console.log('Logging out...');
     navigate('/login');
   };
@@ -64,6 +64,14 @@ const MainLayout = () => {
     { text: 'Goals', icon: <FlagIcon />, path: '/goals' },
     { text: 'Analysis', icon: <InsightsIcon />, path: '/analysis' },
   ];
+
+  // Check if a menu item is active
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') {
+      return true;
+    }
+    return location.pathname.startsWith(path) && path !== '/';
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -157,9 +165,30 @@ const MainLayout = () => {
               button
               key={item.text}
               onClick={() => handleNavigation(item.path)}
+              selected={isActive(item.path)}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.action.selected,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                  }
+                }
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemIcon
+                sx={{
+                  color: isActive(item.path) ? theme.palette.primary.main : 'inherit',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontWeight: isActive(item.path) ? 'bold' : 'normal',
+                  color: isActive(item.path) ? theme.palette.primary.main : 'inherit',
+                }} 
+              />
             </ListItem>
           ))}
         </List>
