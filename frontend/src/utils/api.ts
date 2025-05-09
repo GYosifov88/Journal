@@ -6,7 +6,8 @@ import axios, {
 } from 'axios';
 import authService from '../services/authService';
 
-const API_URL = 'http://localhost:8000/api';
+// Ensure the API URL has the trailing slash
+const API_URL = 'http://localhost:8000/';
 
 // Create an axios instance
 const api: AxiosInstance = axios.create({
@@ -19,11 +20,16 @@ const api: AxiosInstance = axios.create({
 // Add a request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+    // Get token from localStorage
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user && user.access_token) {
-        config.headers.Authorization = `Bearer ${user.access_token}`;
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.access_token) {
+          config.headers.Authorization = `Bearer ${user.access_token}`;
+        }
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
       }
     }
     return config;
