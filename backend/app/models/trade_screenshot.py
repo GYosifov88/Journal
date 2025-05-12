@@ -17,4 +17,4 @@ class TradeScreenshot(Base):
     )
     
     # Relationships
-    trade = relationship("Trade", back_populates="screenshots") 
+    # trade = relationship("Trade", back_populates="screenshots") 

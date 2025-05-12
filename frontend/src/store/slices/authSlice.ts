@@ -55,10 +55,12 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData: { username: string; email: string; password: string }, { rejectWithValue }) => {
     try {
+      console.log('Registering user with:', userData.email);
       const response = await authService.register(userData);
       return response;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data || { message: 'Registration failed' });
+      console.error('Registration error in slice:', err.message);
+      return rejectWithValue(err.message || 'Registration failed');
     }
   }
 );

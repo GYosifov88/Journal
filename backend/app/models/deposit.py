@@ -13,4 +13,4 @@ class Deposit(Base):
     notes = Column(Text)
     
     # Relationships
-    account = relationship("Account", back_populates="deposits") 
+    # account = relationship("Account", back_populates="deposits") 

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Date, Numeric, ForeignKey, Text, CheckConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Date, Numeric, ForeignKey, Text, CheckConstraint, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -17,10 +17,11 @@ class Goal(Base):
     other_targets = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     
     __table_args__ = (
         CheckConstraint("period_type IN ('WEEKLY', 'MONTHLY', 'YEARLY')"),
     )
     
-    # Relationships
-    user = relationship("User", back_populates="goals") 
+    # Temporarily commented to fix circular dependencies
+    # # user = relationship("User", back_populates="goals") 

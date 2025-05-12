@@ -33,6 +33,6 @@ class Trade(Base):
     )
     
     # Relationships
-    account = relationship("Account", back_populates="trades")
-    details = relationship("TradeDetail", back_populates="trade", uselist=False)
-    screenshots = relationship("TradeScreenshot", back_populates="trade") 
+    # account = relationship("Account", back_populates="trades")
+    # details = relationship("TradeDetail", back_populates="trade", uselist=False)
+    # screenshots = relationship("TradeScreenshot", back_populates="trade") 

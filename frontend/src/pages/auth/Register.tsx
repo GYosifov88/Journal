@@ -44,13 +44,21 @@ const Register: React.FC = () => {
     try {
       setError(null);
       
-      // For development/demo purposes, simulate a successful registration
+      // For development/demo purposes, log values
       console.log('Registration values:', values);
       
-      // Dispatch the register action to update Redux state (in real app this would make an API request)
-      dispatch({ 
-        type: 'auth/register/fulfilled'
-      });
+      // Dispatch the actual register action with user data
+      const userData = {
+        username: values.username,
+        email: values.email,
+        password: values.password
+      };
+      
+      const result = await dispatch(register(userData) as any);
+      
+      if (result.error) {
+        throw new Error(result.error.message || 'Registration failed');
+      }
       
       // Show success message
       setSuccess(true);

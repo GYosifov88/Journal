@@ -17,24 +17,18 @@ export const cleanAuthData = (): void => {
 };
 
 /**
- * Create a test user in localStorage for development/debugging
+ * Create a test user for development purposes
  */
 export const createTestUser = (): User => {
-  const testUser: User = {
+  // Create a user with a random suffix to avoid conflicts
+  const randomSuffix = Math.floor(Math.random() * 1000);
+  
+  return {
     id: 999,
-    username: 'testuser',
-    email: 'test@example.com',
-    access_token: 'test-token-for-development-only'
+    username: `devuser${randomSuffix}`,
+    email: `devuser${randomSuffix}@example.com`,
+    access_token: `test-token-${Date.now()}`
   };
-  
-  try {
-    localStorage.setItem('user', JSON.stringify(testUser));
-    console.log('Test user created:', testUser);
-  } catch (error) {
-    console.error('Error creating test user:', error);
-  }
-  
-  return testUser;
 };
 
 /**
