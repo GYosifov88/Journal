@@ -14,4 +14,4 @@ class TradeDetail(Base):
     comments = Column(Text, nullable=True)
     
     # Relationships
-    trade = relationship("Trade", back_populates="details") 
+    # trade = relationship("Trade", back_populates="details") 

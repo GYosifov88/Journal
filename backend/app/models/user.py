@@ -13,7 +13,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
-    accounts = relationship("Account", back_populates="user")
-    goals = relationship("Goal", back_populates="user")
-    analysis_results = relationship("AnalysisResult", back_populates="user") 
+    # Temporarily removing relationships to fix import issues
+    # These can be added back once the basic auth flow is working
+    # # accounts = relationship("Account", back_populates="user", lazy="dynamic")
+    # # goals = relationship("Goal", back_populates="user", lazy="dynamic")
+    # # analysis_results = relationship("AnalysisResult", back_populates="user", lazy="dynamic") 

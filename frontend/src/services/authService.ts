@@ -24,8 +24,48 @@ interface TokenResponse {
 // Register user
 const register = async (userData: RegisterData): Promise<any> => {
   console.log('Registering user:', userData.username);
-  const response: AxiosResponse = await axios.post(API_URL + 'register', userData);
-  return response.data;
+  try {
+    // Use the direct register endpoint
+    console.log('Sending registration to direct-register endpoint');
+    
+    const response: AxiosResponse = await axios.post('http://localhost:8000/direct-register', userData);
+    
+    console.log('Registration successful, storing user data:', response.status);
+    
+    // Store user data directly
+    const user: User = {
+      id: response.data.id,
+      username: response.data.username,
+      email: response.data.email,
+      access_token: response.data.access_token
+    };
+    
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    // Set authorization header for future requests
+    axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+    
+    return user;
+  } catch (error) {
+    console.error('Registration error:', error);
+    
+    if (isAxiosError(error)) {
+      console.error('API Response:', error.response?.data);
+      console.error('Status:', error.response?.status);
+      
+      // Provide more specific error messages based on the status code
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data.detail || 'Registration failed. User might already exist.');
+      } else if (error.response?.status === 500) {
+        throw new Error('Server error during registration. Please try again later.');
+      } else if (!error.response) {
+        throw new Error('Cannot connect to server. Please check that the backend is running.');
+      }
+    }
+    
+    throw error;
+  }
 };
 
 // Login user
@@ -37,43 +77,36 @@ const login = async (userData: LoginData): Promise<User> => {
   params.append('username', userData.email);
   params.append('password', userData.password);
   
-  console.log('Sending login request to:', API_URL + 'login');
+  console.log('Sending login request to direct login endpoint');
   
   try {
-    // Step 1: Get token
-    console.log('Attempting to get token with credentials:', { 
-      username: userData.email,
-      password: userData.password.substring(0, 3) + '***' // Show only first 3 chars of password for security
-    });
-    
-    const tokenResponse: AxiosResponse<TokenResponse> = await axios.post(API_URL + 'login', params, {
+    // Step 1: Get token from direct login endpoint
+    const tokenResponse: AxiosResponse = await axios.post('http://localhost:8000/direct-login', params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
     
-    console.log('Token received successfully:', tokenResponse.data);
+    console.log('Direct login response received:', tokenResponse.status);
     
-    // Step 2: Get user data using the token
-    console.log('Fetching user data from:', USERS_API_URL + 'me');
-    const userResponse: AxiosResponse = await axios.get(USERS_API_URL + 'me', {
-      headers: {
-        'Authorization': `Bearer ${tokenResponse.data.access_token}`
-      }
-    });
+    if (!tokenResponse.data.access_token) {
+      console.error('No access token received in response:', tokenResponse.data);
+      throw new Error('Invalid server response: No access token received');
+    }
     
-    console.log('User data received:', userResponse.data);
-    
-    // Step 3: Combine token and user data
+    // Create user object directly from direct login response
     const user: User = {
-      id: userResponse.data.id,
-      username: userResponse.data.username,
-      email: userResponse.data.email,
+      id: tokenResponse.data.user_id,
+      username: tokenResponse.data.username,
+      email: tokenResponse.data.email,
       access_token: tokenResponse.data.access_token
     };
     
-    console.log('Login successful, storing user data in localStorage:', user);
+    // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(user));
+    
+    // Set default authorization header for future requests
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResponse.data.access_token}`;
     
     return user;
   } catch (error) {
@@ -82,6 +115,7 @@ const login = async (userData: LoginData): Promise<User> => {
     if (isAxiosError(error)) {
       console.error('API Response:', error.response?.data);
       console.error('Status:', error.response?.status);
+      console.error('Headers:', error.response?.headers);
       
       // Provide more specific error messages based on the status code
       if (error.response?.status === 401) {
@@ -90,6 +124,8 @@ const login = async (userData: LoginData): Promise<User> => {
         throw new Error('API endpoint not found. Please check server configuration.');
       } else if (!error.response) {
         throw new Error('Cannot connect to server. Please check that the backend is running.');
+      } else {
+        throw new Error(`Server error: ${error.response?.data?.detail || 'Unknown error'}`);
       }
     }
     

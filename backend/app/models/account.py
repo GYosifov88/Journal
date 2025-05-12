@@ -14,7 +14,7 @@ class Account(Base):
     currency = Column(String(10), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Relationships
-    user = relationship("User", back_populates="accounts")
-    trades = relationship("Trade", back_populates="account")
-    deposits = relationship("Deposit", back_populates="account") 
+    # Temporarily commented to fix circular dependencies
+    # # user = relationship("User", back_populates="accounts")
+    # # trades = relationship("Trade", back_populates="account")
+    # # deposits = relationship("Deposit", back_populates="account") 

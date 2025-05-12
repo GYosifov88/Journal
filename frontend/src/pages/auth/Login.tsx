@@ -28,8 +28,8 @@ const Login: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const initialValues: LoginFormValues = {
-    email: 'test@example.com',
-    password: 'password123',
+    email: '',
+    password: '',
   };
 
   const validationSchema = Yup.object({
@@ -101,10 +101,6 @@ const Login: React.FC = () => {
         Login
       </Typography>
       
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Use the pre-filled test credentials or click "Test Login" for quick access
-      </Alert>
-      
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
       
@@ -156,23 +152,6 @@ const Login: React.FC = () => {
                 Having trouble? <Link to="/auth-debug">Debug Auth</Link>
               </Typography>
             </Box>
-            
-            <Divider sx={{ my: 2 }} />
-            
-            <Typography variant="caption" color="text.secondary" align="center" display="block">
-              Development Tools
-            </Typography>
-            
-            <Button
-              variant="outlined"
-              color="secondary"
-              fullWidth
-              onClick={handleTestLogin}
-              sx={{ mt: 1 }}
-              size="small"
-            >
-              Test Login (Redux)
-            </Button>
           </Form>
         )}
       </Formik>

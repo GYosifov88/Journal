@@ -142,10 +142,6 @@ const AuthDebug: React.FC = () => {
                       color={testUserStatus.includes('valid') ? 'success.main' : 'error'}>
               {testUserStatus}
             </Typography>
-            <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-              Email: test@example.com<br/>
-              Password: password123
-            </Typography>
           </Paper>
         </Grid>
       </Grid>

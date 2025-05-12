@@ -32,21 +32,12 @@ interface ProtectedRouteProps {
 // Protected Route Component
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const location = useLocation();
   
-  // Check for force_auth parameter (for development/testing only)
-  const urlParams = new URLSearchParams(location.search);
-  const forceAuth = urlParams.get('force_auth');
+  console.log('ProtectedRoute - Auth State:', { user, isAuthenticated });
   
-  console.log('ProtectedRoute - Auth State:', { user, isAuthenticated, forceAuth });
-  
-  if ((!isAuthenticated || !user) && forceAuth !== 'true') {
+  if (!isAuthenticated || !user) {
     console.log('Redirecting to login - Not authenticated');
     return <Navigate to="/login" replace />;
-  }
-  
-  if (forceAuth === 'true') {
-    console.log('Authentication bypassed via URL parameter (dev mode)');
   }
   
   return <>{children}</>;
@@ -65,12 +56,9 @@ const App: React.FC = () => {
 
   // For debugging - log the initial auth state from localStorage
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      console.log('User found in localStorage:', JSON.parse(user));
-    } else {
-      console.log('No user found in localStorage');
-    }
+    // Clear any existing user data to prevent auto-login
+    localStorage.removeItem('user');
+    console.log('Cleared any existing user data from localStorage for fresh login');
     
     // Check backend status
     checkBackendConnectivity();
